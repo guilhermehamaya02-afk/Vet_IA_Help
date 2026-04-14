@@ -1,31 +1,56 @@
-Mensagem_Inicial = print("Olá, eu sou a IA helpvet, estou aqui para auxliar em diagnósticos, responda as perguntas para começarmos.")
-Mensagem_Inicial = print("Ps: Não fui criada para definir diagnóstico e sim para auxiliar.Fica a critério do clínoco o diagnóstico")
+import streamlit as st
 
-Nome = st.text_input("Nome do paciente - ")
-Idade = int( st.number_input("Idade - ") )
-Peso = float( st.number_input("Peso - ") )
-Dor = st.text_input("Paciente sente dor? - ")
-Comendo = st.text_input("Paciente está se alimentando? - ")
-Sintomas = st.text_input("Sintomas do paciente - ")
+# Título
+st.title("🐶 IA HelpVet")
 
-print(Nome)
-print(type(Idade))
-print(type(Peso))
-print(Dor)
-print(Comendo)
-print(Sintomas)
+# Mensagem inicial
+st.write("Olá, eu sou a IA HelpVet, estou aqui para auxiliar em diagnósticos.")
+st.warning("⚠️ Não fui criada para definir diagnóstico, apenas auxiliar. A decisão final é do médico veterinário.")
 
-Realizar_Diagnóstico = print("Paciente apresentando sangue em vômito (Hematêmese) e fraqueza, fortes indícios de Hemorragia interna/Intoxicação; Gastrite ou Úlcera GRAVE; Parvoviróse. Paciente se encontra com mais algum sintoma?")
+# Inputs
+nome = st.text_input("Nome do paciente")
+idade = st.number_input("Idade", min_value=0)
+peso = st.number_input("Peso (kg)", min_value=0.0)
+dor = st.selectbox("Paciente sente dor?", ["Sim", "Não"])
+comendo = st.selectbox("Paciente está se alimentando?", ["Sim", "Não"])
+sintomas = st.text_area("Descreva os sintomas")
 
-Duvida = st.text_input("Quais?")
+# Botão
+if st.button("Analisar"):
 
-print(Duvida)
+    st.subheader("📋 Dados do paciente")
+    st.write(f"Nome: {nome}")
+    st.write(f"Idade: {idade}")
+    st.write(f"Peso: {peso} kg")
+    st.write(f"Dor: {dor}")
+    st.write(f"Alimentação: {comendo}")
+    st.write(f"Sintomas: {sintomas}")
 
-Conclusão = print("Fortes indícios de Gastríte/Úlcera hemorrágica. Recomenda-se investigar se: Gengíva estiver pálida; Vômitos em repetição. Deixar paciente em observação com reposição de soro fisiológico, realizar exames de sangue e fezes + ultrassom ")
+    # Lógica simples
+    if "sangue" in sintomas.lower() or "vômito" in sintomas.lower():
+        st.error("🚨 Possível caso grave!")
+        st.write("Possíveis causas:")
+        st.write("- Hemorragia interna / intoxicação")
+        st.write("- Gastrite ou úlcera grave")
+        st.write("- Parvovirose")
 
-Dúvida_Vet= st.text_input("Algo mais?")
+        duvida = st.text_input("Paciente apresenta mais algum sintoma? Quais?")
+        
+        if duvida:
+            st.write(f"Sintomas adicionais: {duvida}")
 
-print(Dúvida_Vet)
+        st.warning("Recomenda-se investigar:")
+        st.write("- Gengiva pálida")
+        st.write("- Vômitos frequentes")
+        st.write("- Exames de sangue, fezes e ultrassom")
 
-Conclusão_final = print("Não posso recomendar remédios e conclusões. Lembrando que conclusão de diagnóstico fica a críterio do clínico.")
-Conclusão_final = print("Ajudo em algo mais?")
+    else:
+        st.success("Caso aparentemente não crítico, mas requer avaliação clínica.")
+
+    # Final
+    duvida_vet = st.text_input("Algo mais que deseja informar?")
+
+    if duvida_vet:
+        st.write(f"Informação adicional: {duvida_vet}")
+
+    st.info("Não posso recomendar medicamentos. O diagnóstico final é do veterinário.")
