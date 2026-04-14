@@ -1,4 +1,5 @@
-import streamlit as st
+from openai import OpenAI
+client = OpenAI(api_key="SUA_CHAVE_AQUI")
 
 st.title("🐶 IA HelpVet")
 
