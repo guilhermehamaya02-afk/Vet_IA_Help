@@ -1,10 +1,14 @@
 import streamlit as st
 
-st.title("🐶 IA HelpVet")
+st.title("🐶 IA HelpVet - Triagem Veterinária")
 
-st.write("Assistente de triagem veterinária")
 st.warning("⚠️ Não substitui o médico veterinário")
 
+# 🔒 Controle de estado
+if "analisado" not in st.session_state:
+    st.session_state.analisado = False
+
+# 📥 Inputs
 nome = st.text_input("Nome do paciente")
 idade = st.number_input("Idade", min_value=0)
 peso = st.number_input("Peso (kg)", min_value=0.0)
@@ -12,72 +16,157 @@ dor = st.selectbox("Paciente sente dor?", ["Sim", "Não"])
 comendo = st.selectbox("Paciente está se alimentando?", ["Sim", "Não"])
 sintomas = st.text_area("Descreva os sintomas")
 
+# ▶️ Botão
 if st.button("Analisar"):
+    st.session_state.analisado = True
+    st.session_state.sintomas = sintomas
+    st.session_state.comendo = comendo
+    st.session_state.dor = dor
 
-    sintomas_lower = sintomas.lower()
-    possiveis = []
-    gravidade = "Leve"
+# 🔍 ANÁLISE (não reseta mais)
+if st.session_state.analisado:
 
+    sintomas_lower = st.session_state.sintomas.lower()
+
+    possiveis = set()
+    gravidade_score = 0  # 🔥 sistema de pontuação
+
+    # 🔴 CASOS GRAVES
     if "sangue" in sintomas_lower:
-        possiveis += ["Hemorragia interna", "Úlcera grave", "Intoxicação"]
-        gravidade = "Grave"
+        possiveis.update([
+            "Hemorragia interna",
+            "Úlcera hemorrágica",
+            "Intoxicação",
+            "Parvovirose"
+        ])
+        gravidade_score += 3
 
-    elif comendo == "Não":
-        possiveis += ["Anorexia (sinal clínico importante)"]
-        gravidade = "Moderado"
+    if "convuls" in sintomas_lower:
+        possiveis.update([
+            "Distúrbio neurológico",
+            "Intoxicação",
+            "Epilepsia"
+        ])
+        gravidade_score += 3
 
+    if "não levanta" in sintomas_lower or "prostra" in sintomas_lower:
+        possiveis.update([
+            "Choque",
+            "Doença sistêmica grave"
+        ])
+        gravidade_score += 3
+
+    # 🟠 MODERADOS
     if "vomito" in sintomas_lower or "vômito" in sintomas_lower:
-        possiveis += ["Gastrite", "Infecção gastrointestinal"]
+        possiveis.update([
+            "Gastrite",
+            "Corpo estranho",
+            "Infecção gastrointestinal"
+        ])
+        gravidade_score += 2
 
     if "diarreia" in sintomas_lower:
-        possiveis += ["Infecção intestinal", "Parasitose"]
-
-    if "fraqueza" in sintomas_lower:
-        possiveis += ["Anemia", "Doença sistêmica"]
+        possiveis.update([
+            "Parasitose",
+            "Infecção intestinal",
+            "Giardíase"
+        ])
+        gravidade_score += 2
 
     if "febre" in sintomas_lower:
-        possiveis += ["Processo infeccioso"]
+        possiveis.update([
+            "Infecção bacteriana",
+            "Doença viral"
+        ])
+        gravidade_score += 2
 
-    if dor == "Sim":
-        possiveis += ["Processo inflamatório ou dor interna"]
+    if "tosse" in sintomas_lower:
+        possiveis.update([
+            "Tosse dos canis",
+            "Doença respiratória",
+            "Problema cardíaco"
+        ])
+        gravidade_score += 2
 
+    # 🟡 LEVES / COMPLEMENTARES
+    if "coceira" in sintomas_lower:
+        possiveis.update([
+            "Dermatite",
+            "Alergia",
+            "Pulgas ou carrapatos"
+        ])
+        gravidade_score += 1
+
+    if "queda de pelo" in sintomas_lower:
+        possiveis.update([
+            "Dermatite",
+            "Doença hormonal"
+        ])
+        gravidade_score += 1
+
+    if "fraqueza" in sintomas_lower:
+        possiveis.update([
+            "Anemia",
+            "Doença sistêmica"
+        ])
+        gravidade_score += 2
+
+    # 📊 Estado geral
+    if st.session_state.comendo == "Não":
+        possiveis.add("Anorexia (sinal clínico importante)")
+        gravidade_score += 2
+
+    if st.session_state.dor == "Sim":
+        possiveis.add("Processo inflamatório ou dor interna")
+        gravidade_score += 1
+
+    # 🧠 fallback
     if not possiveis:
-        possiveis = ["Quadro inespecífico - necessita avaliação clínica"]
-        gravidade = "Moderado"
+        possiveis.add("Quadro inespecífico - necessita avaliação clínica")
+        gravidade_score += 1
 
-    possiveis = list(set(possiveis))
+    # 🔥 CLASSIFICAÇÃO FINAL
+    if gravidade_score >= 6:
+        gravidade = "GRAVE"
+    elif gravidade_score >= 3:
+        gravidade = "MODERADO"
+    else:
+        gravidade = "LEVE"
 
+    # 📊 OUTPUT
     st.subheader("🧠 Possíveis causas:")
     for p in possiveis:
         st.write(f"- {p}")
 
     st.subheader("⚠️ Nível de gravidade:")
-    if gravidade == "Grave":
+    if gravidade == "GRAVE":
         st.error("GRAVE - procurar veterinário imediatamente")
-    elif gravidade == "Moderado":
+    elif gravidade == "MODERADO":
         st.warning("MODERADO - atenção e avaliação recomendada")
     else:
         st.success("LEVE - observar evolução")
 
+    # ❓ Perguntas inteligentes
     st.subheader("❓ Perguntas adicionais:")
-    if "sangue" in sintomas_lower:
-        st.write("- A gengiva está pálida?")
-    if "diarreia" in sintomas_lower:
-        st.write("- Há presença de muco ou sangue?")
-    if "febre" in sintomas_lower:
-        st.write("- Temperatura foi medida?")
-    st.write("- O animal está letárgico?")
     st.write("- Há quanto tempo começaram os sintomas?")
+    st.write("- O animal está letárgico?")
+    st.write("- A gengiva está pálida?")
+    st.write("- Há presença de sangue nas fezes ou vômito?")
+    st.write("- Está bebendo água normalmente?")
 
+    # 📋 Recomendações
     st.subheader("📋 Recomendações:")
-    st.write("- Manter paciente em observação")
+    st.write("- Manter em observação")
     st.write("- Avaliar hidratação")
-    st.write("- Considerar exames laboratoriais")
+    st.write("- Considerar exames laboratoriais (sangue, fezes)")
+    st.write("- Em casos graves, buscar atendimento imediato")
 
+    # 🚨 BLOQUEIO DE MEDICAMENTO
     remedio = st.text_input("Deseja saber qual medicamento usar?")
 
-    if remedio.lower() in ["sim", "quero", "medicamento"]:
+    if remedio and remedio.lower() in ["sim", "quero", "medicamento", "remedio"]:
         st.error("❌ Não posso recomendar medicamentos.")
         st.write("💡 O tratamento deve ser definido por um médico veterinário.")
 
     st.info("Procure um veterinário para avaliação completa.")
+        
