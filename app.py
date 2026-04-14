@@ -1,16 +1,10 @@
-from openai import OpenAI
-client = OpenAI(api_key="SUA_CHAVE_AQUI")
+import streamlit as st
 
 st.title("🐶 IA HelpVet")
 
-st.write("Olá, eu sou a IA HelpVet.")
-st.warning("⚠️ Não substituo o veterinário.")
+st.write("Assistente de triagem veterinária")
+st.warning("⚠️ Não substitui o médico veterinário")
 
-# Estado inicial
-if "analisado" not in st.session_state:
-    st.session_state.analisado = False
-
-# Inputs principais
 nome = st.text_input("Nome do paciente")
 idade = st.number_input("Idade", min_value=0)
 peso = st.number_input("Peso (kg)", min_value=0.0)
@@ -18,69 +12,72 @@ dor = st.selectbox("Paciente sente dor?", ["Sim", "Não"])
 comendo = st.selectbox("Paciente está se alimentando?", ["Sim", "Não"])
 sintomas = st.text_area("Descreva os sintomas")
 
-# Botão principal
 if st.button("Analisar"):
-    st.session_state.analisado = True
-    st.session_state.sintomas = sintomas
-    st.session_state.comendo = comendo
 
-# 🔍 MOSTRAR RESULTADO (sem resetar)
-if st.session_state.analisado:
-
-    st.subheader("📊 Análise inicial")
-
-    sintomas_lower = st.session_state.sintomas.lower()
+    sintomas_lower = sintomas.lower()
     possiveis = []
+    gravidade = "Leve"
 
-    if "sangue" in sintomas_lower or "vômito" in sintomas_lower:
-        possiveis += [
-            "Hemorragia interna / intoxicação",
-            "Gastrite ou úlcera grave",
-            "Parvovirose"
-        ]
+    if "sangue" in sintomas_lower:
+        possiveis += ["Hemorragia interna", "Úlcera grave", "Intoxicação"]
+        gravidade = "Grave"
+
+    elif comendo == "Não":
+        possiveis += ["Anorexia (sinal clínico importante)"]
+        gravidade = "Moderado"
+
+    if "vomito" in sintomas_lower or "vômito" in sintomas_lower:
+        possiveis += ["Gastrite", "Infecção gastrointestinal"]
 
     if "diarreia" in sintomas_lower:
-        possiveis += [
-            "Infecção intestinal",
-            "Parasitose"
-        ]
+        possiveis += ["Infecção intestinal", "Parasitose"]
 
     if "fraqueza" in sintomas_lower:
-        possiveis += [
-            "Anemia",
-            "Doença sistêmica"
-        ]
+        possiveis += ["Anemia", "Doença sistêmica"]
 
-    if st.session_state.comendo == "Não":
-        possiveis.append("Quadro preocupante (anorexia)")
+    if "febre" in sintomas_lower:
+        possiveis += ["Processo infeccioso"]
+
+    if dor == "Sim":
+        possiveis += ["Processo inflamatório ou dor interna"]
 
     if not possiveis:
-        possiveis.append("Quadro inespecífico — საჭირ avaliação clínica")
+        possiveis = ["Quadro inespecífico - necessita avaliação clínica"]
+        gravidade = "Moderado"
 
-    st.write("### 🧠 Possíveis diagnósticos:")
+    possiveis = list(set(possiveis))
+
+    st.subheader("🧠 Possíveis causas:")
     for p in possiveis:
         st.write(f"- {p}")
 
-    # 👇 AGORA NÃO SOME MAIS
-    mais = st.text_input("Paciente apresenta mais algum sintoma?", key="mais")
+    st.subheader("⚠️ Nível de gravidade:")
+    if gravidade == "Grave":
+        st.error("GRAVE - procurar veterinário imediatamente")
+    elif gravidade == "Moderado":
+        st.warning("MODERADO - atenção e avaliação recomendada")
+    else:
+        st.success("LEVE - observar evolução")
 
-    if mais:
-        if "diarreia" in mais.lower():
-            st.write("➡️ Pode reforçar suspeita de infecção intestinal ou parasitose")
+    st.subheader("❓ Perguntas adicionais:")
+    if "sangue" in sintomas_lower:
+        st.write("- A gengiva está pálida?")
+    if "diarreia" in sintomas_lower:
+        st.write("- Há presença de muco ou sangue?")
+    if "febre" in sintomas_lower:
+        st.write("- Temperatura foi medida?")
+    st.write("- O animal está letárgico?")
+    st.write("- Há quanto tempo começaram os sintomas?")
 
-        if "febre" in mais.lower():
-            st.write("➡️ Pode indicar processo infeccioso")
+    st.subheader("📋 Recomendações:")
+    st.write("- Manter paciente em observação")
+    st.write("- Avaliar hidratação")
+    st.write("- Considerar exames laboratoriais")
 
-    st.write("### 🔎 Avaliação clínica:")
-    st.write("- Monitorar estado geral")
-    st.write("- Verificar gengiva")
-    st.write("- Considerar exames")
+    remedio = st.text_input("Deseja saber qual medicamento usar?")
 
-    # 👇 PERGUNTA CORRETA SOBRE REMÉDIO
-    remedio = st.text_input("Deseja saber qual medicamento usar?", key="remedio")
-
-    if remedio:
+    if remedio.lower() in ["sim", "quero", "medicamento"]:
         st.error("❌ Não posso recomendar medicamentos.")
         st.write("💡 O tratamento deve ser definido por um médico veterinário.")
 
-    st.success("Análise concluída.")
+    st.info("Procure um veterinário para avaliação completa.")
