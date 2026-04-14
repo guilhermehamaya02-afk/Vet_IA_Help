@@ -1,10 +1,9 @@
 import streamlit as st
 
 st.title("🐶 IA HelpVet - Triagem Veterinária")
-
 st.warning("⚠️ Não substitui o médico veterinário")
 
-# 🔒 Controle de estado
+# 🔒 Estado
 if "analisado" not in st.session_state:
     st.session_state.analisado = False
 
@@ -23,15 +22,15 @@ if st.button("Analisar"):
     st.session_state.comendo = comendo
     st.session_state.dor = dor
 
-# 🔍 ANÁLISE (não reseta mais)
+# 🔍 ANÁLISE
 if st.session_state.analisado:
 
     sintomas_lower = st.session_state.sintomas.lower()
 
     possiveis = set()
-    gravidade_score = 0  # 🔥 sistema de pontuação
+    gravidade_score = 0
 
-    # 🔴 CASOS GRAVES
+    # 🔴 GRAVES
     if "sangue" in sintomas_lower:
         possiveis.update([
             "Hemorragia interna",
@@ -49,7 +48,7 @@ if st.session_state.analisado:
         ])
         gravidade_score += 3
 
-    if "não levanta" in sintomas_lower or "prostra" in sintomas_lower:
+    if "prostra" in sintomas_lower or "não levanta" in sintomas_lower:
         possiveis.update([
             "Choque",
             "Doença sistêmica grave"
@@ -88,7 +87,7 @@ if st.session_state.analisado:
         ])
         gravidade_score += 2
 
-    # 🟡 LEVES / COMPLEMENTARES
+    # 🟡 LEVES
     if "coceira" in sintomas_lower:
         possiveis.update([
             "Dermatite",
@@ -125,7 +124,7 @@ if st.session_state.analisado:
         possiveis.add("Quadro inespecífico - necessita avaliação clínica")
         gravidade_score += 1
 
-    # 🔥 CLASSIFICAÇÃO FINAL
+    # 📊 Classificação
     if gravidade_score >= 6:
         gravidade = "GRAVE"
     elif gravidade_score >= 3:
@@ -133,7 +132,7 @@ if st.session_state.analisado:
     else:
         gravidade = "LEVE"
 
-    # 📊 OUTPUT
+    # 📤 RESULTADO
     st.subheader("🧠 Possíveis causas:")
     for p in possiveis:
         st.write(f"- {p}")
@@ -146,7 +145,7 @@ if st.session_state.analisado:
     else:
         st.success("LEVE - observar evolução")
 
-    # ❓ Perguntas inteligentes
+    # ❓ Perguntas clínicas
     st.subheader("❓ Perguntas adicionais:")
     st.write("- Há quanto tempo começaram os sintomas?")
     st.write("- O animal está letárgico?")
@@ -161,25 +160,5 @@ if st.session_state.analisado:
     st.write("- Considerar exames laboratoriais (sangue, fezes)")
     st.write("- Em casos graves, buscar atendimento imediato")
 
-    # 🚨 BLOQUEIO DE MEDICAMENTO
-st.subheader("💬 Pergunta ao sistema")
-
-pergunta = st.text_input("Digite sua pergunta:")
-
-if pergunta:
-    pergunta_lower = pergunta.lower()
-
-    # 🔴 BLOQUEIO DE MEDICAÇÃO
-    if any(palavra in pergunta_lower for palavra in [
-        "remedio", "remédio", "medicamento", "dose", "dosagem", "tratar", "tratamento"
-    ]):
-        st.error("❌ Não posso recomendar medicamentos ou tratamentos.")
-        st.write("💡 A prescrição deve ser feita por um médico veterinário.")
-
-    # 🧠 OUTRAS PERGUNTAS
-    else:
-        st.write("🧠 Resposta:")
-        st.write("Essa pergunta é relevante para avaliação clínica.")
-        st.write("Recomenda-se considerar o contexto completo do paciente e realizar exames se necessário.")
-    st.info("Procure um veterinário para avaliação completa.")
-        
+    # 💬 PERGUNTA DO VETERIN
+    
