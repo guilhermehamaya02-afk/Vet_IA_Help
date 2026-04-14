@@ -162,11 +162,24 @@ if st.session_state.analisado:
     st.write("- Em casos graves, buscar atendimento imediato")
 
     # 🚨 BLOQUEIO DE MEDICAMENTO
-    remedio = st.text_input("Deseja saber qual medicamento usar?")
+st.subheader("💬 Pergunta ao sistema")
 
-    if remedio and remedio.lower() in ["sim", "quero", "medicamento", "remedio"]:
-        st.error("❌ Não posso recomendar medicamentos.")
-        st.write("💡 O tratamento deve ser definido por um médico veterinário.")
+pergunta = st.text_input("Digite sua pergunta:")
 
+if pergunta:
+    pergunta_lower = pergunta.lower()
+
+    # 🔴 BLOQUEIO DE MEDICAÇÃO
+    if any(palavra in pergunta_lower for palavra in [
+        "remedio", "remédio", "medicamento", "dose", "dosagem", "tratar", "tratamento"
+    ]):
+        st.error("❌ Não posso recomendar medicamentos ou tratamentos.")
+        st.write("💡 A prescrição deve ser feita por um médico veterinário.")
+
+    # 🧠 OUTRAS PERGUNTAS
+    else:
+        st.write("🧠 Resposta:")
+        st.write("Essa pergunta é relevante para avaliação clínica.")
+        st.write("Recomenda-se considerar o contexto completo do paciente e realizar exames se necessário.")
     st.info("Procure um veterinário para avaliação completa.")
         
