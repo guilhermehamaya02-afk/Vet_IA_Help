@@ -1,8 +1,16 @@
+import streamlit as st
+
+# 🧠 Título
+st.title("🐶 VetHelp IA - Triagem Veterinária")
+
+st.write("Descreva os sintomas do paciente para análise.")
+
+# 🔍 Função de análise
 def analisar(texto):
 
     texto = texto.lower()
 
-    # 🔍 NORMALIZAÇÃO SIMPLES
+    # 🔍 NORMALIZAÇÃO
     if "vomitando" in texto:
         texto += " vomito"
     if "não come" in texto or "sem comer" in texto:
@@ -10,8 +18,7 @@ def analisar(texto):
     if "fraco" in texto:
         texto += " fraqueza"
 
-    # 🔴 EMERGÊNCIAS (PRIORIDADE MÁXIMA)
-
+    # 🔴 EMERGÊNCIAS
     if "sangue" in texto and "vomito" in texto:
         return {
             "diagnostico": ["Hemorragia digestiva", "Úlcera grave", "Intoxicação"],
@@ -20,11 +27,11 @@ def analisar(texto):
             "recomendacao": "🚨 Procurar atendimento veterinário imediatamente."
         }
 
-    if "dificuldade para urinar" in texto or ("urinar" in texto and "não consegue" in texto):
+    if "dificuldade para urinar" in texto:
         return {
             "diagnostico": ["Obstrução urinária"],
             "nivel": "grave",
-            "explicacao": "A dificuldade para urinar pode indicar obstrução, especialmente perigosa em gatos.",
+            "explicacao": "Dificuldade para urinar pode indicar obstrução, especialmente perigosa em gatos.",
             "recomendacao": "🚨 Emergência veterinária imediata."
         }
 
@@ -44,65 +51,87 @@ def analisar(texto):
             "recomendacao": "🚨 Atendimento imediato."
         }
 
-    # 🟠 MODERADOS
-
+    # 🟠 MODERADO
     if "vomito" in texto and "diarreia" in texto:
         return {
             "diagnostico": ["Gastroenterite", "Infecção intestinal"],
             "nivel": "moderado",
-            "explicacao": "Vômito associado à diarreia indica inflamação gastrointestinal.",
+            "explicacao": "Vômito + diarreia indicam inflamação gastrointestinal.",
             "recomendacao": "Manter hidratação e observar evolução."
         }
 
     if "vomito" in texto:
         return {
-            "diagnostico": ["Gastrite", "Irritação gastrointestinal"],
+            "diagnostico": ["Gastrite"],
             "nivel": "moderado",
-            "explicacao": "O vômito pode estar relacionado a inflamação do estômago.",
-            "recomendacao": "Observar frequência e manter hidratação."
+            "explicacao": "O vômito pode estar ligado a inflamação do estômago.",
+            "recomendacao": "Observar frequência e hidratação."
         }
 
     if "diarreia" in texto:
         return {
-            "diagnostico": ["Enterite", "Infecção intestinal leve"],
+            "diagnostico": ["Enterite"],
             "nivel": "moderado",
             "explicacao": "Diarreia indica alteração intestinal.",
-            "recomendacao": "Monitorar evolução e hidratação."
+            "recomendacao": "Monitorar evolução."
         }
 
     if "tosse" in texto or "espirro" in texto:
         return {
             "diagnostico": ["Doença respiratória"],
             "nivel": "moderado",
-            "explicacao": "Sintomas respiratórios indicam possível infecção ou irritação.",
-            "recomendacao": "Monitorar e procurar avaliação se piorar."
+            "explicacao": "Sintomas respiratórios indicam possível infecção.",
+            "recomendacao": "Observar e procurar avaliação se piorar."
         }
 
-    # 🟢 LEVES
-
-    if "coceira" in texto or "pele" in texto:
+    # 🟢 LEVE
+    if "coceira" in texto:
         return {
-            "diagnostico": ["Alergia", "Dermatite"],
+            "diagnostico": ["Alergia / Dermatite"],
             "nivel": "leve",
-            "explicacao": "Sintomas compatíveis com alteração dermatológica.",
-            "recomendacao": "Observar evolução e evitar automedicação."
+            "explicacao": "Sintomas de pele geralmente indicam alergia.",
+            "recomendacao": "Observar evolução."
         }
 
     # ⚪ GERAL
-
     if "fraqueza" in texto or "apatia" in texto or "anorexia" in texto:
         return {
             "diagnostico": ["Doença sistêmica"],
             "nivel": "moderado",
-            "explicacao": "Os sinais indicam comprometimento geral do organismo.",
+            "explicacao": "Indica comprometimento geral do organismo.",
             "recomendacao": "Recomenda-se avaliação clínica."
         }
-
-    # 🔘 FALLBACK FINAL
 
     return {
         "diagnostico": ["Quadro inespecífico"],
         "nivel": "leve",
-        "explicacao": "Os sintomas não permitem uma hipótese clara.",
-        "recomendacao": "Recomenda-se avaliação veterinária."
+        "explicacao": "Os sintomas não permitem diagnóstico claro.",
+        "recomendacao": "Procure um veterinário."
     }
+
+
+# 📥 Input
+sintomas = st.text_input("Digite os sintomas")
+
+# ▶️ Botão
+if st.button("Analisar"):
+
+    if sintomas.strip() == "":
+        st.warning("Digite os sintomas primeiro.")
+    else:
+        resultado = analisar(sintomas)
+
+        st.subheader("🧠 Diagnóstico sugerido")
+        for d in resultado["diagnostico"]:
+            st.write(f"- {d}")
+
+        st.subheader("📊 Nível")
+        st.write(resultado["nivel"])
+
+        st.subheader("🧠 Explicação")
+        st.write(resultado["explicacao"])
+
+        st.subheader("📋 Recomendação")
+        st.write(resultado["recomendacao"])
+
+        st.info("⚠️ Esta é uma triagem, não substitui o veterinário.")
