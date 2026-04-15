@@ -120,13 +120,21 @@ raca = st.text_input("Raça")
 
 sexo = st.selectbox("Sexo", ["Macho", "Fêmea"])
 
-idade = st.number_input("Idade (anos)", min_value=0, step=1)
 
-data_nascimento = st.date_input("Data de nascimento")
+data_nascimento = st.date_input(
+    "Data de nascimento",
+    format="DD/MM/YYYY"
+)
+
 # 📅 Cálculo automático da idade
 if data_nascimento:
     hoje = date.today()
     idade_calculada = hoje.year - data_nascimento.year
+
+    if (hoje.month, hoje.today) < (data_nascimento.month, data_nascimento.day):
+        idade -= 1
+
+    st.write(f"idade: {idade} anos")
 
     # Ajuste se ainda não fez aniversário no ano
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
