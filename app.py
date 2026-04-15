@@ -1,4 +1,4 @@
-[22:06, 14/04/2026] Gui Amoreco: import streamlit as st
+import streamlit as st
 
 st.title("🐶 VetHelp IA - Assistente Clínica")
 
