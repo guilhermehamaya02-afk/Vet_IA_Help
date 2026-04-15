@@ -1,203 +1,172 @@
 import streamlit as st
+import unicodedata
 
-st.title("🐶 VetHelp IA")
+st.title("🐶 VetHelp IA v2")
 
 st.markdown("""
-Olá 👋  
-Sou a **VetHelp**, uma assistente virtual de triagem veterinária.
-
-Estou aqui para te ajudar na avaliação inicial do paciente 🐾  
-Descreva os sinais clínicos para começarmos.
+Assistente inteligente de triagem veterinária 🧠🐾  
+Sistema de análise por sintomas + gravidade.
 """)
 
-st.info("⚠️ Esta ferramenta auxilia na triagem e não substitui o médico veterinário.")
+st.info("⚠️ Ferramenta de triagem — não substitui veterinário.")
 
-# 🔒 Estado
+# =========================
+# NORMALIZAÇÃO
+# =========================
+def normalizar(texto):
+    texto = texto.lower()
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    )
+
+# =========================
+# BANCO DE SINTOMAS
+# =========================
+SINTOMAS = {
+    "vomito": {"Gastroenterite / distúrbio GI": 2},
+    "diarreia": {"Infecção intestinal / parasitose": 2},
+    "sangue": {"Sinais hemorrágicos / úlcera": 4},
+    "fraqueza": {"Anemia / doença sistêmica": 3},
+    "febre": {"Processo infeccioso": 2},
+    "tosse": {"Doença respiratória": 2},
+    "convuls": {"Distúrbio neurológico grave": 5},
+    "coceira": {"Dermatite / alergia": 1},
+    "queda de pelo": {"Alteração dermatológica": 1},
+    "cansaco": {"Doença sistêmica": 3},
+    "desmaio": {"Colapso sistêmico grave": 5}
+}
+
+# =========================
+# ESTADO
+# =========================
+if "texto_total" not in st.session_state:
+    st.session_state.texto_total = ""
+
 if "analisado" not in st.session_state:
     st.session_state.analisado = False
-if "sintomas_total" not in st.session_state:
-    st.session_state.sintomas_total = ""
 
-# 📥 Dados
+def reset():
+    st.session_state.analisado = False
+    st.session_state.texto_total = ""
+
+# =========================
+# INPUTS
+# =========================
 nome = st.text_input("Nome do paciente")
 especie = st.selectbox("Espécie", ["Cachorro", "Gato"])
-idade = st.number_input("Idade", min_value=0)
-peso = st.number_input("Peso (kg)", min_value=0.0)
+idade = st.number_input("Idade (anos)", min_value=0.1)
+peso = st.number_input("Peso (kg)", min_value=0.1)
 
-tempo = st.selectbox("Tempo dos sinais", ["Hoje", "1-2 dias", "3+ dias"])
-intensidade = st.selectbox("Intensidade percebida", ["Leve", "Moderado", "Intenso"])
+dor = st.selectbox("Paciente com dor?", ["Sim", "Não"])
+comendo = st.selectbox("Está comendo normalmente?", ["Sim", "Não"])
 
-dor = st.selectbox("Paciente apresenta dor?", ["Sim", "Não"])
-comendo = st.selectbox("Está se alimentando normalmente?", ["Sim", "Não"])
+sintomas = st.text_area("Descreva os sinais clínicos")
 
-sintomas = st.text_area("Descreva os sinais observados")
-
-# ▶️ Botão
+# =========================
+# BOTÃO
+# =========================
 if st.button("Iniciar análise"):
     st.session_state.analisado = True
-    st.session_state.sintomas_total = sintomas
+    st.session_state.texto_total = sintomas
 
-# 🔍 Função
+# =========================
+# IA
+# =========================
 def analisar(texto):
+    texto = normalizar(texto)
 
-    texto = texto.lower()
-    possiveis = set()
+    possiveis = {}
     score = 0
+    red_flag = False
 
-    # Combinações
-    if "vomito" in texto and "diarreia" in texto:
-        possiveis.add("Gastroenterite")
-        score += 3
+    RED_FLAGS = ["convuls", "desmaio", "inconsciente", "paralis"]
 
-    if "sangue" in texto and "fraqueza" in texto:
-        possiveis.add("Hemorragia interna")
-        score += 4
+    if any(flag in texto for flag in RED_FLAGS):
+        red_flag = True
+        score += 5  # 🔴 agora influencia gravidade
 
-    if "tosse" in texto and "cansaço" in texto:
-        possiveis.add("Alteração cardíaca ou respiratória")
-        score += 3
+    for sintoma, diagn in SINTOMAS.items():
+        if sintoma in texto:
+            for d, peso in diagn.items():
+                possiveis[d] = possiveis.get(d, 0) + peso
+                score += peso
 
-    # Graves
-    if "convuls" in texto:
-        possiveis.add("Distúrbio neurológico")
-        score += 4
+    return possiveis, score, red_flag
 
-    if "sangue" in texto:
-        possiveis.add("Úlcera ou intoxicação")
-        score += 3
-
-    # Moderados
-    if "vomito" in texto or "vômito" in texto:
-        possiveis.add("Gastrite")
-        score += 2
-
-    if "diarreia" in texto:
-        possiveis.add("Infecção intestinal ou parasitose")
-        score += 2
-
-    if "febre" in texto:
-        possiveis.add("Processo infeccioso")
-        score += 2
-
-    if "tosse" in texto:
-        possiveis.add("Doença respiratória")
-        score += 2
-
-    # Leves
-    if "coceira" in texto:
-        possiveis.add("Dermatite ou alergia")
-        score += 1
-
-    if "queda de pelo" in texto:
-        possiveis.add("Alteração dermatológica")
-        score += 1
-
-    return possiveis, score
-
-# 🔍 Execução
+# =========================
+# EXECUÇÃO
+# =========================
 if st.session_state.analisado:
 
-    st.write("🔎 Analisando os dados informados...")
+    st.subheader("🔎 Análise clínica")
 
-    texto_total = st.session_state.sintomas_total
+    texto = st.session_state.texto_total
+    possiveis, score, red_flag = analisar(texto)
 
-    possiveis, score = analisar(texto_total)
-
-    # Ajustes clínicos
+    # ajustes clínicos (AGORA COM PESO CORRETO)
     if comendo == "Não":
-        possiveis.add("Anorexia (sinal clínico relevante)")
         score += 2
+        possiveis["Anorexia / inapetência"] = possiveis.get("Anorexia / inapetência", 0) + 2
 
     if dor == "Sim":
-        possiveis.add("Possível processo inflamatório")
         score += 1
-
-    if especie == "Gato" and "vomito" in texto_total.lower():
-        possiveis.add("Em felinos, vômitos podem ocorrer com maior frequência — avaliar padrão")
 
     if idade < 1:
-        possiveis.add("Paciente jovem — maior risco de doenças infecciosas")
-        score += 1
+        score += 2
+        possiveis["Paciente jovem (alto risco infeccioso)"] = possiveis.get("Paciente jovem (alto risco infeccioso)", 0) + 2
 
     if idade > 8:
-        possiveis.add("Paciente idoso — considerar doenças crônicas")
-        score += 1
-
-    if tempo == "3+ dias":
         score += 2
+        possiveis["Paciente idoso (risco crônico)"] = possiveis.get("Paciente idoso (risco crônico)", 0) + 2
 
-    if intensidade == "Intenso":
-        score += 3
-    elif intensidade == "Moderado":
-        score += 2
-
-    if not possiveis:
-        possiveis.add("Quadro inespecífico — recomenda-se avaliação clínica detalhada")
-
-    # Gravidade
-    if score >= 7:
+    # =========================
+    # CLASSIFICAÇÃO
+    # =========================
+    if red_flag or score >= 10:
         nivel = "grave"
-    elif score >= 4:
+    elif score >= 5:
         nivel = "moderado"
     else:
         nivel = "leve"
 
-    # Resultado
-    st.subheader("🧠 Análise inicial")
+    # =========================
+    # RESULTADO
+    # =========================
+    st.write("### 🧠 Possibilidades clínicas:")
 
-    st.write("Com base nas informações fornecidas, identifiquei algumas possibilidades clínicas:")
+    if possiveis:
+        for d in sorted(possiveis, key=possiveis.get, reverse=True):
+            st.write(f"- {d}")
+    else:
+        st.write("- Quadro inespecífico")
 
-    for p in possiveis:
-        st.write(f"- {p}")
+    st.write("---")
 
-    st.subheader("⚠️ Avaliação de gravidade")
+    st.write("### ⚠️ Gravidade")
+
+    if red_flag:
+        st.error("🚨 ALERTA: Sinais neurológicos ou críticos detectados!")
 
     if nivel == "grave":
-        st.error("🚨 O quadro apresenta sinais de maior gravidade. Recomenda-se atendimento veterinário imediato.")
+        st.error("🚨 EMERGÊNCIA VETERINÁRIA — atendimento imediato recomendado.")
     elif nivel == "moderado":
-        st.warning("⚠️ O quadro requer atenção e avaliação clínica.")
+        st.warning("⚠️ Avaliação veterinária recomendada em breve.")
     else:
-        st.success("🟢 No momento, os sinais indicam um quadro mais leve, porém deve ser monitorado.")
+        st.success("🟢 Quadro leve — monitorar evolução.")
 
-    # Frase inteligente
-    st.subheader("📊 Interpretação geral")
+    st.metric("Score clínico", score)
 
-    st.write(f"O conjunto dos sinais sugere um quadro clínico **{nivel}**, considerando a associação dos sintomas apresentados.")
+    # =========================
+    # RECOMENDAÇÕES
+    # =========================
+    st.write("### 📋 Recomendações")
+    st.write("- Monitorar evolução")
+    st.write("- Observar alimentação e água")
+    st.write("- Procurar veterinário se piorar")
+    st.write("- Considerar exames clínicos se persistir")
 
-    # Recomendações
-    st.subheader("📋 Recomendações iniciais")
-
-    st.write("- Monitorar a evolução do paciente")
-    st.write("- Observar alterações no comportamento")
-    st.write("- Avaliar ingestão de água e alimentação")
-    st.write("- Considerar exames laboratoriais, se necessário")
-
-    # Atualização
-    st.subheader("🔄 Atualizar com novos sinais")
-
-    mais = st.text_input("Deseja acrescentar mais algum sintoma?")
-
-    if mais:
-        st.write("🔄 Atualizando análise com as novas informações...")
-        st.session_state.sintomas_total += " " + mais
-
-        novos, _ = analisar(st.session_state.sintomas_total)
-
-        st.write("🧠 Nova análise considerando todos os sinais:")
-        for n in novos:
-            st.write(f"- {n}")
-
-    # Pergunta
-    st.subheader("💬 Conversar com a VetHelp")
-
-    pergunta = st.text_input("Digite sua pergunta:")
-
-    if pergunta:
-        if any(p in pergunta.lower() for p in ["remedio", "remédio", "medicamento", "dose"]):
-            st.error("❌ Como assistente de triagem, não posso recomendar medicamentos.")
-            st.write("💡 A conduta terapêutica deve ser definida por um médico veterinário.")
-        else:
-            st.write("🧠 Essa é uma pergunta relevante para a avaliação clínica.")
-            st.write("Recomenda-se considerar o contexto completo do paciente.")
-
-    st.info("Para um diagnóstico definitivo, procure um médico veterinário.")
+    # =========================
+    # RESET
+    =========================
+    st.button("Resetar caso", on_click=reset)
