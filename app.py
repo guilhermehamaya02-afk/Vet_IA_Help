@@ -124,7 +124,7 @@ from datetime import date
 
 data_nascimento = st.date_input(
     "Data de nascimento",
-    format="DD/MM/YYYY"
+    format="DD/MM/YYYY",
     max_value=date.today()
 )
 
