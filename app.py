@@ -172,6 +172,7 @@ if st.session_state.analisado:
             if mais.lower() not in st.session_state.sintomas_total.lower():
 
     # Pergunta
+    if pergunta:
     st.subheader("💬 Pergunta ao sistema")
     pergunta = st.text_input("Digite sua pergunta:")
 
