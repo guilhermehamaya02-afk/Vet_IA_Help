@@ -1,30 +1,12 @@
-import streamlit as st
+import streamlist as st
 
-st.title("🐶 VetHelp IA - Assistente Clínica")
+st.title("VetHelp IA - Assitente Veterinário")
 
 st.markdown("""
-Olá 👋  
-Sou a *VetHelp*, uma assistente inteligente de triagem veterinária.
+Olá
+Sou a *VetHelp*, uma assintente inteligente de triagem veterinária.
 
-Descreva os sinais clínicos do paciente para iniciarmos a análise 🐾
-""")
-
-st.info("⚠️ Esta ferramenta auxilia na triagem e não substitui o médico veterinário.")
-
-# 🔒 Estado
-if "analisado" not in st.session_state:
-    st.session_state.analisado = False
-
-if "sintomas_total" not in st.session_state:
-    st.session_state.sintomas_total = ""
-
-# 📥 Inputs
-nome = st.text_input("Nome do paciente", key="nome")
-especie = st.selectbox("Espécie", ["Cachorro", "Gato"], key="especie")
-idade = st.number_input("Idade", min_value=0, key="idade")
-peso = st.number_input("Peso (kg)", min_value=0.0, key="peso")
-
-[22:12, 14/04/2026] Gui Amoreco: def analisar(texto):
+def analisar(texto):
 
     texto = texto.lower()
 
