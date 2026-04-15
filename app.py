@@ -166,10 +166,10 @@ if st.session_state.analisado:
     st.subheader("🔄 Adicionar novo sintoma")
     mais = st.text_input("Digite outro sintoma:")
 
-    if mais and mais != st.session_state.ultima_atualizacao:
-        st.session_state.sintomas_total += " " + mais
-        st.session_state.ultima_atualizacao = mais
-        st.rerun()
+    if st.button("Adicionar sintoma"):
+        if mais:
+            st.session_state.sintomas_total += " " + mais
+            if mais.lower() not in st.session_state.sintomas_total.lower():
 
     # Pergunta
     st.subheader("💬 Pergunta ao sistema")
