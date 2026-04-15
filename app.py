@@ -109,6 +109,24 @@ def analisar(texto):
         "recomendacao": "Procure um veterinário."
     }
 
+st.subheader("📋 Dados do paciente")
+
+nome = st.text_input("Nome do paciente")
+
+especie = st.selectbox("Espécie", ["Cachorro", "Gato"])
+
+raca = st.text_input("Raça")
+
+sexo = st.selectbox("Sexo", ["Macho", "Fêmea"])
+
+idade = st.number_input("Idade (anos)", min_value=0, step=1)
+
+data_nascimento = st.date_input("Data de nascimento")
+
+castrado = st.selectbox("É castrado?", ["Sim", "Não"])
+
+peso = st.number_input("Peso (kg)", min_value=0.0, step=0.1)
+
 
 # 📥 Input
 sintomas = st.text_input("Digite os sintomas")
@@ -120,6 +138,15 @@ if st.button("Analisar"):
         st.warning("Digite os sintomas primeiro.")
     else:
         resultado = analisar(sintomas)
+
+        st.write(f"Nome: {nome}")
+        st.write(f"Espécie: {espécie}")
+        st.write(f"Raça: {raca}")
+        st.write(f"Sexo: {sexo}")
+        st.write(f"Idade: {idade} anos")
+        st.write(f"Data de nascimento: {data_nascimento}")
+        st.write(f"Castrado: {castrado}")
+        st.write(f"Peso: {peso} kg")
 
         st.subheader("🧠 Diagnóstico sugerido")
         for d in resultado["diagnostico"]:
