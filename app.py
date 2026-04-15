@@ -24,7 +24,6 @@ especie = st.selectbox("Espécie", ["Cachorro", "Gato"], key="especie")
 idade = st.number_input("Idade", min_value=0, key="idade")
 peso = st.number_input("Peso (kg)", min_value=0.0, key="peso")
 
-t…
 [22:12, 14/04/2026] Gui Amoreco: def analisar(texto):
 
     texto = texto.lower()
