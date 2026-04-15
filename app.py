@@ -134,7 +134,7 @@ if data_nascimento:
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
         idade -= 1
 
-    st.write(f"idade: {idade} anos")
+    st.write(f"Idade: (idade) anos")
 
     # Ajuste se ainda não fez aniversário no ano
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
