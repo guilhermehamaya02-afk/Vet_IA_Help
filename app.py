@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import date
 
 # 🧠 Título
 st.title("🐶 VetHelp IA - Triagem Veterinária")
@@ -122,6 +123,16 @@ sexo = st.selectbox("Sexo", ["Macho", "Fêmea"])
 idade = st.number_input("Idade (anos)", min_value=0, step=1)
 
 data_nascimento = st.date_input("Data de nascimento")
+# 📅 Cálculo automático da idade
+if data_nascimento:
+    hoje = date.today()
+    idade_calculada = hoje.year - data_nascimento.year
+
+    # Ajuste se ainda não fez aniversário no ano
+    if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
+        idade_calculada -= 1
+
+    st.write(f"Idade calculada: {idade_calculada} anos")
 
 castrado = st.selectbox("É castrado?", ["Sim", "Não"])
 
