@@ -132,7 +132,7 @@ if data_nascimento:
     idade_calculada = hoje.year - data_nascimento.year
 
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
-        idade -= 1
+        idade -= 30
 
     st.write(f"Idade: (idade) anos")
 
