@@ -145,7 +145,7 @@ if data_nascimento:
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
         idade_calculada -= 30
 
-    st.write(f"Idade calculada: {idade_calculada} anos")
+    st.write(f"Idade calculada: (idade_calculada) anos")
 
 castrado = st.selectbox("É castrado?", ["Sim", "Não"])
 
