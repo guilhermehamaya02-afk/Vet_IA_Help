@@ -120,10 +120,12 @@ raca = st.text_input("Raça")
 
 sexo = st.selectbox("Sexo", ["Macho", "Fêmea"])
 
+from datetime import date
 
 data_nascimento = st.date_input(
     "Data de nascimento",
     format="DD/MM/YYYY"
+    max_value=date.today()
 )
 
 # 📅 Cálculo automático da idade
@@ -132,7 +134,10 @@ if data_nascimento:
     idade_calculada = hoje.year - data_nascimento.year
 
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
-        idade -= 30
+        idade -= 1
+ # Proteção contra erro
+    if idade < 0:
+        idade = 0
 
     st.write(f"Idade: (idade) anos")
 
