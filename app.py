@@ -1,11 +1,10 @@
 import streamlit as st
 
-# 🧠 Interface
-st.title("🐶 VetHelp IA - Triagem Clínica")
+st.title("🐶 VetHelp IA - Assistente Clínica")
 
 st.markdown("""
 Olá 👋  
-Sou a *VetHelp*, assistente de triagem veterinária.
+Sou a *VetHelp*, uma assistente inteligente de triagem veterinária.
 
 Descreva os sinais clínicos do paciente para iniciarmos a análise 🐾
 """)
@@ -41,6 +40,7 @@ if st.button("Analisar", key="btn_analise"):
         st.session_state.analisado = True
         st.session_state.sintomas_total = sintomas
 
+
 # 🔍 Normalização
 def normalizar(texto):
     texto = texto.lower()
@@ -49,10 +49,7 @@ def normalizar(texto):
         "vômito": "vomito",
         "vomitando": "vomito",
         "diarréia": "diarreia",
-        "cansaço": "cansaco",
         "falta de ar": "dispneia",
-        "urina com sangue": "hematúria",
-        "urina sangue": "hematúria",
         "não come": "anorexia",
         "sem comer": "anorexia",
         "muito fraco": "fraqueza",
@@ -65,6 +62,7 @@ def normalizar(texto):
             texto = texto.replace(k, v)
 
     return texto
+
 
 # 🔍 Análise clínica
 def analisar(texto, especie, idade, comendo, dor, tempo, intensidade):
@@ -80,52 +78,39 @@ def analisar(texto, especie, idade, comendo, dor, tempo, intensidade):
         "Sistêmico": {"lista": set(), "score": 0}
     }
 
-    # 🟠 Gastro
+    # Gastro
     if "vomito" in texto:
         sistemas["Gastrointestinal"]["lista"].add("Gastrite")
         sistemas["Gastrointestinal"]["score"] += 2
 
     if "diarreia" in texto:
-        sistemas["Gastrointestinal"]["lista"].add("Enterite / infecção intestinal")
+        sistemas["Gastrointestinal"]["lista"].add("Enterite")
         sistemas["Gastrointestinal"]["score"] += 2
 
     if "vomito" in texto and "diarreia" in texto:
         sistemas["Gastrointestinal"]["lista"].add("Gastroenterite")
         sistemas["Gastrointestinal"]["score"] += 3
 
-    # 🔵 Respiratório
+    # Respiratório
     if "tosse" in texto:
         sistemas["Respiratório"]["lista"].add("Doença respiratória")
         sistemas["Respiratório"]["score"] += 2
 
     if "dispneia" in texto:
-        sistemas["Respiratório"]["lista"].add("Dispneia - possível emergência")
+        sistemas["Respiratório"]["lista"].add("Emergência respiratória")
         sistemas["Respiratório"]["score"] += 4
 
-    # 🟣 Neurológico
+    # Neurológico
     if "convuls" in texto:
         sistemas["Neurológico"]["lista"].add("Distúrbio neurológico")
         sistemas["Neurológico"]["score"] += 4
 
-    if "tremor" in texto:
-        sistemas["Neurológico"]["lista"].add("Alteração neurológica ou intoxicação")
-        sistemas["Neurológico"]["score"] += 2
-
-    # 💧 Urinário
-    if "hematúria" in texto:
-        sistemas["Urinário"]["lista"].add("Cistite / cálculo urinário")
-        sistemas["Urinário"]["score"] += 3
-
-    if "dificuldade para urinar" in texto:
-        sistemas["Urinário"]["lista"].add("Obstrução urinária (emergência)")
+    # Urinário
+    if "urinar" in texto and "dificuldade" in texto:
+        sistemas["Urinário"]["lista"].add("Obstrução urinária")
         sistemas["Urinário"]["score"] += 4
 
-    # 🧴 Dermato
-    if "coceira" in texto:
-        sistemas["Dermatológico"]["lista"].add("Alergia / dermatite")
-        sistemas["Dermatológico"]["score"] += 1
-
-    # 🔴 Sistêmico
+    # Sistêmico
     if "fraqueza" in texto or "apatia" in texto:
         sistemas["Sistêmico"]["lista"].add("Doença sistêmica")
         sistemas["Sistêmico"]["score"] += 2
@@ -135,37 +120,17 @@ def analisar(texto, especie, idade, comendo, dor, tempo, intensidade):
         sistemas["Sistêmico"]["score"] += 2
 
     if dor == "Sim":
-        sistemas["Sistêmico"]["lista"].add("Processo inflamatório")
         sistemas["Sistêmico"]["score"] += 1
 
-    # 🐱 Felino crítico
-    if especie == "Gato" and "dificuldade para urinar" in texto:
-        sistemas["Urinário"]["lista"].add("Emergência felina (obstrução uretral)")
-        sistemas["Urinário"]["score"] += 5
-
-    # 👶 Idade
-    if idade < 1:
-        sistemas["Sistêmico"]["score"] += 1
-
-    if idade > 8:
-        sistemas["Sistêmico"]["score"] += 1
-
-    # ⏱️ Tempo
-    if tempo == "3+ dias":
-        for s in sistemas:
-            sistemas[s]["score"] += 1
-
-    # 🔥 Intensidade
+    # Intensidade
     if intensidade == "Intenso":
         for s in sistemas:
             sistemas[s]["score"] += 2
-    elif intensidade == "Moderado":
-        for s in sistemas:
-            sistemas[s]["score"] += 1
 
     return sistemas
 
-# 🔍 Execução
+
+# 🔍 EXECUÇÃO
 if st.session_state.analisado:
 
     st.write("🔎 Analisando dados clínicos...")
@@ -193,26 +158,63 @@ if st.session_state.analisado:
                 maior_score = dados["score"]
                 sistema_principal = nome_sistema
 
+    # 🧠 Interpretação
     if sistema_principal:
-        st.subheader("🧠 Principal suspeita clínica")
-        st.success(f"Sistema mais afetado: {sistema_principal}")
+        st.subheader("🧠 Interpretação clínica")
+
+        if sistema_principal == "Gastrointestinal":
+            st.write("Os sinais indicam comprometimento gastrointestinal, podendo envolver inflamação ou infecção.")
+
+        elif sistema_principal == "Respiratório":
+            st.write("Os sintomas sugerem envolvimento respiratório, podendo indicar infecção ou dificuldade respiratória.")
+
+        elif sistema_principal == "Urinário":
+            st.write("Há sinais compatíveis com problema urinário, podendo ser grave.")
+
+        elif sistema_principal == "Neurológico":
+            st.write("Os sinais indicam possível alteração neurológica, requerendo atenção.")
+
+        elif sistema_principal == "Sistêmico":
+            st.write("O quadro indica comprometimento geral do organismo.")
+
+    # 📋 Recomendações
+    st.subheader("📋 Recomendações iniciais")
+
+    if sistema_principal == "Gastrointestinal":
+        st.write("- Manter hidratação")
+        st.write("- Observar vômitos e diarreia")
+
+    elif sistema_principal == "Respiratório":
+        st.write("- Evitar esforço")
+        st.write("- Monitorar respiração")
+
+    elif sistema_principal == "Urinário":
+        st.write("- Procurar atendimento imediato se não urinar")
+
+    elif sistema_principal == "Neurológico":
+        st.write("- Procurar emergência veterinária")
+
+    elif sistema_principal == "Sistêmico":
+        st.write("- Monitorar estado geral")
+        st.write("- Buscar avaliação clínica")
 
     # 🔄 Adicionar sintoma
-    novo = st.text_input("Adicionar novo sintoma", key="novo_sintoma")
+    novo = st.text_input("Adicionar novo sintoma", key="novo")
 
     if st.button("Adicionar sintoma", key="btn_add"):
         if novo.strip() != "":
             st.session_state.sintomas_total += " " + novo
-            st.success("Sintoma adicionado!")
+            st.success("Sintoma adicionado! Reanalisando...")
+            st.session_state.analisado = True
 
     # 💬 Pergunta
     pergunta = st.text_input("Pergunta ao sistema", key="pergunta")
 
     if pergunta:
-        if any(p in pergunta.lower() for p in ["remedio", "remédio", "medicamento", "dose"]):
+        if any(p in pergunta.lower() for p in ["remedio", "remédio", "medicamento"]):
             st.error("❌ Não posso recomendar medicamentos.")
-            st.write("💡 A conduta deve ser definida por um médico veterinário.")
+            st.write("💡 A decisão deve ser do veterinário.")
         else:
-            st.write("🧠 Pergunta relevante para avaliação clínica.")
+            st.write("🧠 Pergunta válida para avaliação clínica.")
 
-    st.info("Procure um veterinário para diagnóstico definitivo.")
+    st.info("Consulte um veterinário para diagnóstico definitivo.")
