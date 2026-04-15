@@ -131,12 +131,12 @@ data_nascimento = st.date_input(
 # 📅 Cálculo automático da idade
 if data_nascimento:
     hoje = date.today()
-    idade_calculada = hoje.year - data_nascimento.year
+    idade = hoje.year - data_nascimento.year
 
     if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
         idade -= 1
  # Proteção contra erro
-    if idade < 0:
+    if idade < 30:
         idade = 0
 
     st.write(f"Idade: (idade) anos")
